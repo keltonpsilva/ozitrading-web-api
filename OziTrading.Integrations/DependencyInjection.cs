@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OziTrading.Integrations.Alpaca.Interfaces;
+using System.Reflection;
 
 namespace OziTrading.Integrations
 {
@@ -11,6 +13,8 @@ namespace OziTrading.Integrations
             var alpacaConfigurations = new AlpacaConfigurations();
             configuration.Bind(nameof(alpacaConfigurations), alpacaConfigurations);
             services.AddSingleton(alpacaConfigurations);
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             AddIoC(services);
 
