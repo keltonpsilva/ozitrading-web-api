@@ -1,9 +1,9 @@
 ﻿using Alpaca.Markets;
+using AutoMapper;
 using OziTrading.Integrations.Alpaca.Interfaces;
 using OziTrading.Integrations.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OziTrading.Integrations
@@ -11,26 +11,19 @@ namespace OziTrading.Integrations
     public class AlpacaClient : IAlpacaClient
     {
         private readonly IAlpacaConfigurations _config;
+        private readonly IMapper _mapper;
 
-        public AlpacaClient(AlpacaConfigurations config)
+        public AlpacaClient(AlpacaConfigurations config, IMapper mapper)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-
+            _mapper = mapper;
         }
 
         public async Task<AlpacaAccountModel> GetAccountAsync()
         {
             var account = await AlpacaTradingClient().GetAccountAsync();
 
-
-            return new AlpacaAccountModel() {
-                Id = account.AccountId,
-                AccountantNumber = account.AccountNumber,
-                Currency = account.Currency,
-                TradableCash = account.TradableCash,
-                WithdrawableCash = account.WithdrawableCash,
-                Status = account.Status.ToString()
-            };
+            return _mapper.Map<AlpacaAccountModel>(account);
         }
 
         public Task<AlpacaAssestModel> GetAssestAsyncByIdAsync(string id)
@@ -42,35 +35,14 @@ namespace OziTrading.Integrations
         {
             var assest = await AlpacaTradingClient().GetAssetAsync(symbol.ToUpper());
 
-            return new AlpacaAssestModel() {
-                Class = assest.Class.ToString(),
-                EasyToBorrow = assest.EasyToBorrow,
-                Exchange = assest.Exchange.ToString(),
-                Id = assest.AssetId,
-                Marginable = assest.Marginable,
-                Shortable = assest.Shortable,
-                Status = assest.Status.ToString(),
-                Symbol = assest.Symbol,
-                Tradable = assest.IsTradable
-            };
+            return _mapper.Map<AlpacaAssestModel>(assest);
         }
 
         public async Task<List<AlpacaAssestModel>> GetListAssestsAsync()
         {
             var assets = await AlpacaTradingClient().ListAssetsAsync(new AssetsRequest() { AssetStatus = AssetStatus.Active });
 
-            return assets.Select(a => new AlpacaAssestModel() {
-                Id = a.AssetId,
-                Class = a.Class.ToString(),
-                EasyToBorrow = a.EasyToBorrow,
-                Exchange = a.Exchange.ToString(),
-                Marginable = a.Marginable,
-                Shortable = a.Shortable,
-                Status = a.Status.ToString(),
-                Symbol = a.Symbol,
-                Tradable = a.IsTradable,
-            }).ToList();
-
+            return _mapper.Map<List<AlpacaAssestModel>>(assets);
         }
 
         private AlpacaTradingClient AlpacaTradingClient() => Environments.Paper.GetAlpacaTradingClient(new SecretKey(_config.ApiKeyId, _config.ApiSecretKey));
